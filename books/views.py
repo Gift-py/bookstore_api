@@ -69,11 +69,12 @@ class BookDetailViews(generics.GenericAPIView):
 
 class AuthorViews(generics.GenericAPIView):
     queryset = Author.objects.all()
-    serializer_class = AuthorSerializer()
+    serializer_class = AuthorSerializer
 
     #get author
     def get(self, request):
-        return Response({'status':'success', 'authors':self.serializer_class(self.queryset).data})
+        serializer = self.serializer_class(Author.objects.all(), many=True)
+        return Response({'status':'success', 'authors':serializer.data})
     
     #create author
     def post(self, request):
@@ -86,7 +87,7 @@ class AuthorViews(generics.GenericAPIView):
 
 class AuthorDetailViews(generics.GenericAPIView):
     queryset = Author.objects.all()
-    serializer_class = AuthorSerializer()
+    serializer_class = AuthorSerializer
 
     def get_author(self, author_id):
         try:
@@ -101,7 +102,8 @@ class AuthorDetailViews(generics.GenericAPIView):
         if author == None:
             return Response({'status':'failed', 'message':'author not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        return Response({'status':'success', 'author':self.serializer_class(author).data})
+        serializer = self.serializer_class(author)
+        return Response({'status':'success', 'author':serializer.data})
 
     #update author
     def patch(self, request, author_id):
@@ -110,15 +112,16 @@ class AuthorDetailViews(generics.GenericAPIView):
         if author == None:
             return Response({'status':'failed', 'message':'author not found'}, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = self.serializer_class(author, data=request.body, partial=True)
+        serializer = self.serializer_class(author, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response({'status':'success', 'author':serializer.data}, status=status.HTTP_418_IM_A_TEAPOT)
         return Response({'status':'failed', 'message':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     #delete author
-    def author(self, request, author_id):
+    def delete(self, request, author_id):
         author = self.get_author(author_id)
+        print('\n\n',author,'\n\n')
 
         if author == None:
             return Response({'status':'failed', 'message':'author not found'}, status=status.HTTP_404_NOT_FOUND)
